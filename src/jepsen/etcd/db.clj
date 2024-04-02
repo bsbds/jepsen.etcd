@@ -85,7 +85,7 @@
     {:logfile logfile
      :pidfile pidfile
      :chdir   dir
-     :env {:RUST_LOG "debug"}}
+     :env {:RUST_LOG "none"}}
     binary
     :--name node
     :--storage-engine storage-engine
@@ -213,6 +213,8 @@
       (db/setup! (lazyfs node) test node))
 
     (db/start! db test node)
+
+    (Thread/sleep 4000)
 
     ; Wait for node to come up
     (let [c (client/client node)]
