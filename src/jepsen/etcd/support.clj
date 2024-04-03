@@ -17,7 +17,7 @@
 (defn peer-url
   "The HTTP url for other peers to talk to a node."
   [node]
-  (str node ":" 2379))
+  (str node ":" 2380))
 
 (defn client-url
   "The HTTP url clients use to talk to a node."

@@ -23,6 +23,7 @@
 (def logfile (str dir "/xline.log"))
 (def pidfile (str dir "/xline.pid"))
 (def xline-log-dir "/var/log/xline")
+(def xline-wal-dir "/usr/local/xline")
 
 (defn data-dir
   "Where does this node store its data on disk?"
@@ -35,7 +36,8 @@
   (c/su
    (c/exec :rm :-rf (str dir "/" node ".xline"))
    ; Also wipes xline logs
-   (c/exec :rm :-rf xline-log-dir))
+   (c/exec :rm :-rf xline-log-dir)
+   (c/exec :rm :-rf xline-wal-dir))
   ; We don't want these files coming back when lazyfs loses unsynced writes
   (when (:lazyfs test)
     (-> test :db :lazyfs lazyfs/checkpoint!)))
@@ -85,11 +87,15 @@
     {:logfile logfile
      :pidfile pidfile
      :chdir   dir
-     :env {:RUST_LOG "none"}}
+     :env {:RUST_LOG "info"}}
     binary
     :--name node
     :--storage-engine storage-engine
     :--data-dir data-dir
+    :--client-listen-urls (s/client-url node)
+    :--peer-listen-urls (s/peer-url node)
+    :--client-advertise-urls (s/client-url node)
+    :--peer-advertise-urls (s/peer-url node)    
     :--members (initial-cluster (:nodes opts)))))
 
 (defn kill!
@@ -237,7 +243,8 @@
     (kill!)
     (c/su (c/exec :rm :-rf dir)
           ; Also wipes xline logs
-          (c/exec :rm :-rf xline-log-dir))
+          (c/exec :rm :-rf xline-log-dir)
+          (c/exec :rm :-rf xline-wal-dir))
     (when (:tcpdump test)
       (db/teardown! tcpdump test node)))
 
